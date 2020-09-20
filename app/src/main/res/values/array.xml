@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <string-array name="timePeriodOptions">
+        <item>Past Day</item>
+        <item>Past 5 Days</item>
+        <item>Past Month</item>
+        <item>Past Year</item>
+        <item>All Time</item>
+    </string-array>
+
+</resources>

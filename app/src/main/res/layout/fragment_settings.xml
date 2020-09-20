@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:tag="settings">
+
+
+    <Switch
+        android:id="@+id/darkModeSwitch"
+        android:layout_width="359dp"
+        android:layout_height="67dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="0dp"
+        android:switchTextAppearance="@style/TextAppearance.AppCompat.Large"
+        android:text="Dark Mode"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:textColor="#434343"
+        android:textSize="18sp"
+        android:trackTint="#1E64A0"
+        />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="3dp"
+        android:layout_marginTop="68dp"
+        android:layout_marginEnd="-2dp"
+        android:background="?android:attr/listDivider" />
+
+
+</RelativeLayout>
