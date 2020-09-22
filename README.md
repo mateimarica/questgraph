@@ -1,4 +1,4 @@
-# <a href="https://www.npmjs.com/package/humio-winston"><img src="https://i.imgur.com/FqGRb63.png" alt="" /></a> 
+![Logo](https://i.imgur.com/FqGRb63.png)
 
 I noticed that Questrade (online brokerage firm) does not does show you any sort of history, graphs, or visuals of any kind to how your investment portfolios are performing. Thus, here is an Android application that does so using the [Questrade API](https://www.questrade.com/api).
 
