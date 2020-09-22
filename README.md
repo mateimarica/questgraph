@@ -34,6 +34,6 @@ Questrade uses a REST API, for access to read and write Questrade data and OAuth
 ## TODO
 * Upload APKs to github
 * Implement SQLite database management system
-* Implement retroactive data gathering by tracking deposits, withdrawals, trades,(current version can only create visuals using real-time data)
+* Implement retroactive data gathering by tracking deposits, withdrawals, trades, etc. (current version can only create visuals using real-time data)
 * Overhaul *Account Overview* page
 * Overhaul *Home* page and show overall account balance
