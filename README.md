@@ -1,8 +1,10 @@
-![Logo](https://i.imgur.com/FqGRb63.png)
+# <a href="https://www.npmjs.com/package/humio-winston"><img src="https://i.imgur.com/95Rji4r.png" alt="" /></a> 
 
 I noticed that Questrade (online brokerage firm) does not does show you any sort of history, graphs, or visuals of any kind to how your investment portfolios are performing. Thus, here is an Android application that does so using the [Questrade API](https://www.questrade.com/api).
 
 Questrade uses a REST API, for access to read and write Questrade data and OAuth 2.0 as a security protocol.  
+
+*This application is in the very early stages of development.*
 
 <br/>
 
