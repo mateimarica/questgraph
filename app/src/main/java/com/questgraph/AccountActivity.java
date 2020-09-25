@@ -12,7 +12,6 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -28,27 +27,24 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.TextView;
-
 import com.google.android.material.navigation.NavigationView;
-
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 
 public class AccountActivity extends AppCompatActivity {
-    final static int darkThemeBackground = Color.rgb(19, 21, 22);
 
+    final static int darkThemeBackground = Color.rgb(19, 21, 22);
     final static int lightThemeBackground = Color.rgb(255, 255, 255);
     final static int darkThemeText = Color.rgb(160, 160, 160);
     final static int darkThemeElements = Color.rgb(40, 40, 40);
     final static int lightThemeText = Color.rgb(67, 67, 67);
+
     static boolean restartSettings;
     /**
      * Reference to the UI.
      */
     static Context context;
-
-
 
     /**
      * Loading dialog.
@@ -93,23 +89,20 @@ public class AccountActivity extends AppCompatActivity {
 
     private View view;
 
-
     @SuppressLint("WrongThread")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        view = findViewById(android.R.id.content).getRootView();
 
+        view = findViewById(android.R.id.content).getRootView();
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("QuestGraph");
 
         drawer = findViewById(R.id.drawer_layout);
-
         navigationView = findViewById(R.id.nav_view);
-
 
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawer, toolbar, 0, 0);
         drawer.addDrawerListener(drawerToggle);
@@ -122,7 +115,6 @@ public class AccountActivity extends AppCompatActivity {
 
         //Begins the start that gets the information about the accounts (eg: creates a menu item for each account)
         new AccessTokenTask().execute(Section.ACCOUNTS);
-
 
         menu = navigationView.getMenu();
         menu.add("Home").setIcon(R.drawable.ic_home).setCheckable(true).setChecked(true).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
@@ -175,7 +167,6 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-
         //Adds the accounts submenu after adding the home and settings items to have it appear at the end of the menu.
         accountGroup = menu.addSubMenu("Accounts");
 
@@ -196,12 +187,6 @@ public class AccountActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, newFragment).addToBackStack("").commit();
         }
 
-
-
-
-
-
-
         //Sets context reference
         context = this;
 
@@ -210,8 +195,6 @@ public class AccountActivity extends AppCompatActivity {
                 BalanceRecordingService.class, 20, TimeUnit.MINUTES
         ).build();
         WorkManager.getInstance(this).enqueueUniquePeriodicWork("BalanceGetter", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest);
-
-
     }
 
     @Override
@@ -237,36 +220,24 @@ public class AccountActivity extends AppCompatActivity {
             menu.getItem(0).setChecked(true);
             toolbar.setTitle("QuestGraph");
 
-
             MainFragment newFragment = new MainFragment();
             currentFragment = newFragment;
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, newFragment).addToBackStack("").commit();
-
-
-
         }
-
     }
-
-
 
     @Override
     public void onResume() {
         super.onResume();
 
         if(Tools.darkThemeEnabled()) {
-
             navigationView.setBackgroundColor(darkThemeBackground);
             //navigationView.setItemTextColor(ColorStateList.valueOf(darkThemeText));
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         }
 
         //Placeholder method
-
-
     }
-
-
 
     //Background task that uses the access token to get information from the API
     class AccessTokenTask extends AsyncTask<Section, Object, Boolean> {
@@ -274,16 +245,10 @@ public class AccountActivity extends AppCompatActivity {
             loadingDialog.setCancelable(false);
             loadingDialog.setTitle("Loading...");
             loadingDialog.setMessage("Retrieving accounts...");
-
-
-
         }
 
         protected Boolean doInBackground(Section... section) {
-
-
             if(section[0].equals(Section.ACCOUNTS)) {
-
 
                 try {
                     publishProgress(new Object[]{Tools.getAccounts(), Section.ACCOUNTS});
@@ -296,10 +261,6 @@ public class AccountActivity extends AppCompatActivity {
             }
 
             return true;
-
-
-
-
         }
 
         protected void onProgressUpdate(Object... obj) {
@@ -311,9 +272,9 @@ public class AccountActivity extends AppCompatActivity {
                 case ACCOUNTS:
                     ArrayList<String> accounts =  (ArrayList<String>) obj[0];
                     for(int i = 0; i < accounts.size(); i = i + 2) {
+
                         final String accountNum = accounts.get(i);
                         final String accountType = accounts.get(i + 1);
-
 
                         MenuItem newAccountItem = accountGroup.add(accountNum + "  —  " + accountType).setIcon(R.drawable.ic_account).setCheckable(true);
 
@@ -341,21 +302,11 @@ public class AccountActivity extends AppCompatActivity {
                                 currentFragment = newFragment;
                                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, newFragment, accountNum).addToBackStack("").commit();
 
-
-
-
-
                                 drawer.closeDrawers();
-
                                 return true;
                             }
                         });
-
-
                     }
-
-
-
 
                     loadingDialog.dismiss();
                     break;
@@ -365,18 +316,12 @@ public class AccountActivity extends AppCompatActivity {
                     //Tries to use the refresh token if the access token doesn't work
                     new RefreshTokenTask().execute((String) obj[0]);
 
-
-
             }
-
-
         }
-
 
         protected void onPostExecute(Boolean... result) {
-
+            //placeholder
         }
-
     }
 
     //Enum that represents the current state of using the refresh token
@@ -388,15 +333,12 @@ public class AccountActivity extends AppCompatActivity {
 
     //Background task that uses the refresh token if the access token doesn't work at any time
     class RefreshTokenTask extends AsyncTask<String, RefreshCurrentState, Boolean> {
+
         protected void onPreExecute () {
-
-
             loadingDialog.setMessage("Access token expired, trying refresh token...");
-
         }
 
         protected Boolean doInBackground(String... refreshToken) {
-
 
             try {
                 //Tries to get a new access token using the refresh token
@@ -408,57 +350,39 @@ public class AccountActivity extends AppCompatActivity {
                 //TODO Perhaps encrypt account numbers file names
                 Tools.resetFiles();
                 publishProgress(RefreshCurrentState.FAIL);
-
-
                 return false;
             }
 
-
             publishProgress (RefreshCurrentState.SUCCESSFUL);
-
             return true;
-
-
-
-
         }
 
         protected void onProgressUpdate(RefreshCurrentState... state) {
 
             switch(state[0]) {
-
-
                 case SUCCESSFUL:
-
                     loadingDialog.dismiss();
                     ((Activity) context).recreate();
-
-
                     break;
+
                 case FAIL:
                     loadingDialog.dismiss();
-
-
-
                     //If the refresh token fails, nothing more can be done. Sends the user back to the home screen
                     startActivity(new Intent(context, AuthLoginActivity.class).putExtra("refresh_token","invalid"));
                     finish();
-
                     break;
 
                 default:
                     System.out.println("Issue in refreshTokenTask");
                     break;
-
             }
         }
 
 
         protected void onPostExecute(Boolean... result) {
-
+            //placeholder
         }
 
     }
-
 
 }

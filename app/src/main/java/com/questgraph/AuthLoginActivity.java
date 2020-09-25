@@ -2,8 +2,6 @@ package com.questgraph;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-
-
 import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -54,14 +52,11 @@ public class AuthLoginActivity extends AppCompatActivity  {
     private Toast popup;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth_login);
-
 
         //The login button.
         authLoginBtn = findViewById(R.id.authLoginBtn);
@@ -110,8 +105,6 @@ public class AuthLoginActivity extends AppCompatActivity  {
                 ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
                 authTokenField.setText(item.getText());
 
-
-
             }
         });
 
@@ -141,7 +134,6 @@ public class AuthLoginActivity extends AppCompatActivity  {
         return context;
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
@@ -153,8 +145,6 @@ public class AuthLoginActivity extends AppCompatActivity  {
         }
 
     }
-
-
 
     //enum used to represent the current state of the login process.
     enum CurrentState {SUCCESSFUL, FAIL}
@@ -174,20 +164,15 @@ public class AuthLoginActivity extends AppCompatActivity  {
         //Tries to get the access token with the authorization token.
         protected Boolean doInBackground(String... authToken) {
 
-
-
             try {
                 Tools.getAccessToken(authToken[0]);
             } catch (InvalidManualAuthTokenException e) {
                 publishProgress(CurrentState.FAIL);
-
-
                 return false;
             }
+
             publishProgress(CurrentState.SUCCESSFUL);
-
             return true;
-
         }
 
         //If successful, go to next activity. If not, stay on this activity and show error popup.
@@ -211,12 +196,9 @@ public class AuthLoginActivity extends AppCompatActivity  {
             }
         }
 
-
         protected void onPostExecute(boolean result) {
 
         }
-
     }
-
 
 }

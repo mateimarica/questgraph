@@ -1,6 +1,5 @@
 package com.questgraph;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,13 +17,11 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.TimeZone;
 
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 class Tools {
-
 
     /**
      * The root file directory for this app.
@@ -43,7 +40,6 @@ class Tools {
     private static File settingsFile = new File (filesDir + "/settings.json");
 
 
-
     /**
      * General path for each account's balance history. Filepath = /balanceHist[accountNum]
      */
@@ -51,7 +47,6 @@ class Tools {
 
     //Unused b/c accounts are determined at runtime
     //private static File balanceHistoryFile = new File (balancesPath);
-
 
     final static SimpleDateFormat compressedTime = new SimpleDateFormat("d-M-yyyy/H:m");
 
@@ -61,6 +56,7 @@ class Tools {
             System.out.println("Settings file created.");
         }
     }
+
     static void updateDarkTheme(boolean enabled) {
         writeToFile("{\"darkThemeEnabled\":" + enabled + "}",  settingsFile);
     }
@@ -76,8 +72,6 @@ class Tools {
         } catch(Exception e) {
             return BalanceRecordingService.getContext().getFilesDir();
         }
-
-
     }
 
     /**
@@ -87,8 +81,6 @@ class Tools {
     static boolean initFileExists() {
         return initFile.exists();
     }
-
-
 
     /**
      * Returns the refresh token from init.json
@@ -117,37 +109,24 @@ class Tools {
 
     }
 
-
     /**
      * Gets access token using auth token and creates init.json
      * @param authToken The manual authorization token (or the refresh token)
      * @return The access token
      * @throws InvalidManualAuthTokenException If authorization token doesn't work.
      */
-
-
     static String getAccessToken(String authToken) throws InvalidManualAuthTokenException {
-
-
-
 
         BufferedReader in;
 
         try {
             in = connectToURL("https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token=" + authToken);
         } catch (BadResponseCodeException e) {
-
-
-
             throw new InvalidManualAuthTokenException(e.getMessage() + "\nAuth token is invalid.");
-
-
         }
-
 
         //saves to json
         try {
-
             writeToFile(in.readLine(), initFile);
             System.out.println("init.json created");
             in.close();
@@ -155,11 +134,8 @@ class Tools {
             System.err.println(e.getMessage());
         }
 
-
         return getValueFromJSON(initFile, "access_token");
-
     }
-
 
     /**
      * Tries the access token or refresh token from the file. Always gets new account file.
@@ -168,12 +144,10 @@ class Tools {
      */
     static ArrayList<String> getAccounts() throws InvalidAccessTokenException {
 
-
         BufferedReader in;
         ArrayList<String> accountNums = new ArrayList<>();
 
         try {
-
             in = connectToURL(getValueFromJSON(initFile, "api_server")
                             + "v1/accounts/",
                     getValueFromJSON(initFile, "access_token"));
@@ -181,6 +155,7 @@ class Tools {
         } catch (BadResponseCodeException e) {
             throw new InvalidAccessTokenException(e.getMessage() + "\nAccess token is invalid or has expired.");
         }
+
         try {
             //saves to json
             try {
@@ -190,7 +165,6 @@ class Tools {
             } catch (NullPointerException e) {
                 System.out.println("NullPointerException when reading accounts file... No internet? Using file that already exists.");
             }
-
 
         } catch (IOException e) {
             System.err.println("IOException occured in getAccInfo(): " + e.getMessage());
@@ -202,7 +176,6 @@ class Tools {
             scan.close();
             JSONArray accountsArray = accounts.getJSONArray("accounts");
 
-
             for (int i = 0; true; i++) {
                 //each account's number is at the
                 accountNums.add(accountsArray.getJSONObject(i).getString("number"));
@@ -213,9 +186,7 @@ class Tools {
             //TODO Should probably put something here, but under proper conditions the program shouldn't reach this
         }
 
-
         return accountNums;
-
     }
 
     /**
@@ -237,10 +208,18 @@ class Tools {
      * @throws BadResponseCodeException If the website's response code is not 200 (200 = OK)
      */
     private static BufferedReader connectToURL(String URLIn, String accessToken) throws BadResponseCodeException {
-
         return connectToURL(URLIn, accessToken, null, null);
-
     }
+
+    /**
+     * Connect to a URL that requires a start date and an end date.
+     * @param URLIn The URL that is to be connected to.
+     * @param accessToken The access token.
+     * @param startTime Start of time range in ISO format. By default – start of today, 12:00am. Eg of date: startTime=2020-08-23T21:14:07+00:00
+     * @param endTime End of time range in ISO format. By default – end of today, 11:59pm
+     * @return Returns a reference to the BufferedReader from info can be read from.
+     * @throws BadResponseCodeException If the website's response code is not 200 (200 = OK)
+     */
     private static BufferedReader connectToURL(String URLIn, String accessToken, String startTime, String endTime) throws BadResponseCodeException {
 
         BufferedReader in = null;
@@ -253,25 +232,20 @@ class Tools {
                 System.out.println(URLIn);
             }*/
 
-
             URL URL = new URL(URLIn);
-
-
             HttpURLConnection connection = (HttpURLConnection) URL.openConnection();
 
-
             if (accessToken != null) {
-
                 connection.setRequestProperty("Authorization", "Bearer " + accessToken);
                 //connection.setDoOutput(true);
                 connection.setRequestMethod("GET");
             }
 
             if (connection.getResponseCode() != 200) {
-
                 throw new BadResponseCodeException(" Bad response code " + connection.getResponseCode() + " recieved."
                         + "\nReason: " + connection.getResponseMessage());
             }
+
             in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
         } catch (IOException e) {
@@ -279,11 +253,7 @@ class Tools {
         }
 
         return in;
-
     }
-
-
-
 
     /**
      * Saves a string to a given file.
@@ -299,7 +269,6 @@ class Tools {
         } catch (FileNotFoundException e) {
             System.err.println("ERROR: File could not be written at " + destination.getAbsolutePath() + ". " + e.getMessage());
         }
-
     }
 
     /**
@@ -333,73 +302,31 @@ class Tools {
      * @return The value associated with the given key.
      */
     static String getValueFromJSON (File JSONIn, String key) {
-        String value = "error";
 
+        Scanner scan = null;
         try {
-            Scanner scan = new Scanner(JSONIn);
-            String currentKey, JSONContents = scan.nextLine();
-
-            scan.close();
-
-            if(JSONContents.equals("")) {
-                return null;
-            }
-
-            //commented-out code is for checking what happens when both access and refresh token don't work.
-            //String a = "{\"access_token\":\"6pI2KSiGztS-kGd-86-zmlfA18Bk-el0\",\"refresh_token\":\"CfzndDcYyw86AEse0i1YJQHq4CdPR-70\",\"api_server\":\"https://api03.iq.questrade.com/\",\"token_type\":\"Bearer\",\"expires_in\":1800}";
-            //JSONObject JSONFile = new JSONObject(a);
-            JSONObject JSONFile = new JSONObject(JSONContents);
-            scan = new Scanner(key).useDelimiter("/");
-
-            while (true) {
-
-                currentKey = scan.next();
-                key = key.substring(currentKey.length());
-
-                //if finish parsing JSON
-                if (key.length() == 0) {
-                    value = JSONFile.getString(currentKey);
-                    break;
-
-                    //if next part of JSON is array
-                } else if (currentKey.equals("")) {
-                    int arrayIndex = scan.nextInt();
-                    scan.next();
-                    currentKey = scan.next();
-
-                    JSONFile = JSONFile.getJSONArray(currentKey).getJSONObject(arrayIndex);
-
-                } else {
-                    if (scan.hasNext()) {
-                        JSONFile = JSONFile.getJSONObject(currentKey);
-                    } else {
-
-                        value = JSONFile.get(currentKey) + "";
-                        break;
-                    }
-                }
-
-            }
-
-            scan.close();
-
+            scan = new Scanner(JSONIn);
         } catch (FileNotFoundException e) {
-            System.err.println("FileNotFoundException occurred in getValueFromJSON() " + e.getMessage());
-        } catch (JSONException e) {
-            //System.err.println("JSONException occurred in getValueFromJSON() " + e.getMessage());
-            return null;
+            e.printStackTrace();
         }
-        return value;
+
+        return getValueFromJSON(scan.nextLine(), key);
     }
 
-    static String getValueFromJSON (String JSONIn, String key) {
+    /**
+     * Gets the value associated with the given key path in the given JSON file.
+     * Eg: "//0//accounts/number" --> //0// before the accounts means accounts is an array. //0//accounts means the 0th index of accounts.
+     *                                //0//accounts/number means find the value for the number key in the 0th index of the accounts array.
+     * @param JSONContents A string containing JSON format data.
+     * @param key The key whose value is to be returned.
+     * @return The value associated with the given key.
+     */
+    static String getValueFromJSON (String JSONContents, String key) {
         String value = "error";
 
         try {
-            Scanner scan = new Scanner(JSONIn);
-            String currentKey, JSONContents = scan.nextLine();
-
-            scan.close();
+            Scanner scan;
+            String currentKey;
 
             if(JSONContents.equals("")) {
                 return null;
@@ -408,6 +335,7 @@ class Tools {
             //commented-out code is for checking what happens when both access and refresh token don't work.
             //String a = "{\"access_token\":\"6pI2KSiGztS-kGd-86-zmlfA18Bk-el0\",\"refresh_token\":\"CfzndDcYyw86AEse0i1YJQHq4CdPR-70\",\"api_server\":\"https://api03.iq.questrade.com/\",\"token_type\":\"Bearer\",\"expires_in\":1800}";
             //JSONObject JSONFile = new JSONObject(a);
+
             JSONObject JSONFile = new JSONObject(JSONContents);
             scan = new Scanner(key).useDelimiter("/");
 
@@ -442,7 +370,6 @@ class Tools {
             }
 
             scan.close();
-
 
         } catch (JSONException e) {
             //System.err.println("JSONException occurred in getValueFromJSON() " + e.getMessage());
@@ -460,7 +387,6 @@ class Tools {
      */
     static String getBalanceJSON(String accNum) throws InvalidAccessTokenException {
         BufferedReader in = null;
-
 
         try {
 
@@ -486,8 +412,12 @@ class Tools {
         } catch (NullPointerException e) {
             //No internet, so return last record in balance history.
 
-            //
-            Scanner scan = new Scanner(getBalanceHistory(accNum));
+            String balanceHistory = getBalanceHistory(accNum);
+            if(balanceHistory == null) {
+                return null;
+            }
+
+            Scanner scan = new Scanner(balanceHistory);
 
             //JSONContent =  This is one line of the balance history for this account;
 
@@ -505,18 +435,12 @@ class Tools {
             scan.close();
 
             isInternetConnection = false;
-
-
         }
 
-
        return JSONContents;
-
-
-
     }
 
-
+    //Records current real-time balances and saves them to a file
     static void recordBalances() throws InvalidAccessTokenException {
 
         Calendar cal = Calendar.getInstance();
@@ -525,43 +449,33 @@ class Tools {
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int min = cal.get(Calendar.MINUTE);
 
-
-
-
         if(!((day != 1 && day != 7) && ((hour >= 10 && hour < 17) || (hour == 17 && min <= 20)))) {
             System.out.println("Balance was not recorded after-hours");
             return;
         }
 
-
         System.out.println("Recording balances...");
-
-
 
         ArrayList<String> accountNums = accountNums = getAccounts();
 
         //EXPERIMENT FOR FUTURE RETROACTIVE GRAPHING
         /*try {
-            System.out.println("TRY???");
+            System.out.println("Phase 1");
             BufferedReader in = connectToURL(getValueFromJSON(initFile, "api_server")
                     + "v1/accounts/"
                     + accountNums.get(0)
                     + "/activities", getValueFromJSON(initFile, "access_token"), "2020-08-16", "2020-09-19");
-            System.out.println("TRY???2");
+            System.out.println("Phase 2");
             String CONTENTS = in.readLine();
-            System.out.println("TRY???3");
+            System.out.println("Phase 3");
             writeToFile(CONTENTS, new File(filesDir + "/executions"));
-            System.out.println("successssssssssssssssssssssss EXECUTINOS");
+            System.out.println("Execution success");
         } catch (BadResponseCodeException | IOException e) {
             e.printStackTrace();
         }*/
 
-
         //Uses Atlantic time as standardized timezone
         TimeZone.setDefault(TimeZone.getTimeZone("Canada/Atlantic"));
-
-        //Gets current time
-
 
         //Compressed time/date
         String timeStr = compressedTime.format(cal.getTime());
@@ -589,7 +503,6 @@ class Tools {
             }
         }
 
-
         //accountsNum array looks like {acc1Num, acc1Type, acc2Num, acc2Type, .....}
         for(int i = 0; i < accountNums.size(); i += 2) {
             File accFile = new File(balancesPath + accountNums.get(i));
@@ -602,7 +515,6 @@ class Tools {
                 return;
             }
 
-
             String dateAndBalance = timeStr + " " + balanceInfo;
 
             if(!accFile.exists()) {
@@ -610,14 +522,10 @@ class Tools {
             } else {
                 appendToFile(dateAndBalance, accFile);
             }
-
-
         }
 
         System.out.println("Successfully recorded balances.");
     }
-
-
 
     //Gets the total history of the balances from the /balanceHist[accountNum] directory
     static String getBalanceHistory(String accNum) {
@@ -628,6 +536,7 @@ class Tools {
         } catch (FileNotFoundException e) {
             System.out.println("Couldn't read the total balance history...");
             e.printStackTrace();
+            return null;
         }
 
         String totalHistoryStr = "";
@@ -638,15 +547,6 @@ class Tools {
             totalHistoryStr += "\n" + scan.nextLine();
         }
 
-
-
-
         return totalHistoryStr;
-
     }
-
-
-
-
-
 }

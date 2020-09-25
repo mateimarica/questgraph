@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -59,13 +58,10 @@ public class AccountFragment extends Fragment {
     ArrayList<Double> combinedUSD = new ArrayList<>();
     boolean nextOneInvisible;
 
-
-
     /**
      * Loading dialog.
      */
     private ProgressDialog loadingDialog;
-
 
     @Nullable
     @Override
@@ -84,9 +80,6 @@ public class AccountFragment extends Fragment {
             accountNum = Integer.parseInt(getArguments().getString("accountNum"));
             accountType = getArguments().getString("accountType");
         }
-
-
-
     }
 
     @Override
@@ -96,20 +89,12 @@ public class AccountFragment extends Fragment {
         helpText = view.findViewById(R.id.help_text);
         helpText.setText("Account Overview");
 
-
         currencyDisplayText = view.findViewById(R.id.currenciesDisplayText);
-
         dropdown = view.findViewById(R.id.timePeriodSpinner);
-
-
         graph = view.findViewById(R.id.graph);
 
         loadingDialog = new ProgressDialog(AccountActivity.context);
-
         loadingDialog.setCancelable(false);
-
-
-
     }
 
 
@@ -137,12 +122,9 @@ public class AccountFragment extends Fragment {
 
             loadingDialog.show();
             loadingDialog.setMessage("Generating graph...");
-
         }
 
-
         protected Boolean doInBackground(String... refreshToken) {
-
             System.out.println("Account Fragment opened");
 
             //Gets the CURRENT account balance
@@ -155,18 +137,17 @@ public class AccountFragment extends Fragment {
 
                 String CAD = Tools.getValueFromJSON(
                             Tools.getBalanceJSON(accountNum + ""),"//0//perCurrencyBalances/totalEquity");
-                CAD = df.format(Double.parseDouble(CAD));
+                CAD = df.format(Double.parseDouble(CAD)/2);
+
 
                 String USD = Tools.getValueFromJSON(
                         Tools.getBalanceJSON(accountNum + ""),"//1//perCurrencyBalances/totalEquity");
-                USD = df.format(Double.parseDouble(USD));
+                USD = df.format(Double.parseDouble(USD)/2);
 
 
                 String balanceHist = Tools.getBalanceHistory(accountNum + "");
                 Scanner scan = new Scanner(balanceHist);
                 while(scan.hasNext()) {
-
-
                     Scanner sectionScan = new Scanner(scan.nextLine());
 
                     Date date = compressedTime.parse(sectionScan.next());
@@ -175,39 +156,27 @@ public class AccountFragment extends Fragment {
                     cal.add(Calendar.YEAR, -50);
                     date = cal.getTime();
 
-
-
                     dates.add(date);
 
                     String JSONContents = sectionScan.next();
-                    totalCAD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//0//perCurrencyBalances/totalEquity")));
+                    totalCAD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//0//perCurrencyBalances/totalEquity"))/2);
                     totalUSD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//1//perCurrencyBalances/totalEquity")));
                     combinedCAD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//0//combinedBalances/totalEquity")));
                     combinedUSD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//1//combinedBalances/totalEquity")));
-
-
-
                 }
 
                 publishProgress(CAD, USD);
 
-
-
-
-
-            } catch(InvalidAccessTokenException | ParseException e) {
+            } catch(InvalidAccessTokenException e) {
                 System.out.println("InvalidAccessTokenException thrown when getting account " +
                                    "balances in AccountFragment.java: " + e.getMessage());
+            } catch (ParseException e) {
+                System.out.println("ParseException thrown when getting account " +
+                        "balances in AccountFragment.java: " + e.getMessage());
             }
 
-
             return true;
-
-
-
-
         }
-
 
         //balances[0] = current CAD
         //balances[1] = current USD
@@ -236,18 +205,14 @@ public class AccountFragment extends Fragment {
             loadingDialog.dismiss();
         }
 
-
         protected void onPostExecute(Boolean... result) {
 
         }
-
     }
 
     private void generateGraph(int periodInDays, String[] currentBalances) {
         TimeZone.setDefault(TimeZone.getTimeZone("Canada/Atlantic"));
         Calendar cal = Calendar.getInstance();
-
-
 
         //Displays current $ in CAD and USD
         currencyDisplayText.setText("CAD: $" + currentBalances[0] + "\nUSD: $" + currentBalances[1]);
@@ -257,7 +222,6 @@ public class AccountFragment extends Fragment {
         int min = cal.get(Calendar.MINUTE);
 
         /*LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPointArr);
-
 
         series.setColor(green);
         series.setThickness(20);
@@ -278,14 +242,8 @@ public class AccountFragment extends Fragment {
         double lastValue = totalCAD.get(totalCAD.size() - 1);
 
         for(int i = 0; i < dates.size(); i++) {
-
-
-
             series.appendData(new DataPoint(dates.get(i), totalCAD.get(i)), true, 10000);
-
         }
-
-
 
         graph.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
             @Override
@@ -299,7 +257,7 @@ public class AccountFragment extends Fragment {
                     // show normal x values
                     //super.formatLabel(value, isValueX) = milliseconds with commas
                     String removeCommas = super.formatLabel(value, isValueX).replaceAll("," , "");
-                    long milliAsInt = Long.parseLong(removeCommas);
+                    long milliAsInt = Long.parseLong((removeCommas));
                     Date dateOfXValue = new Date(milliAsInt);
                     SimpleDateFormat onlyHoursandMinsFormat = new SimpleDateFormat("h:mm");
                     nextOneInvisible = true;
@@ -326,7 +284,4 @@ public class AccountFragment extends Fragment {
         graph.getGridLabelRenderer().setNumHorizontalLabels(9); // only 4 because of the space
 
     }
-
-
-
 }
