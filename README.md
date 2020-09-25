@@ -8,6 +8,11 @@ Questrade uses a REST API, for access to read and write Questrade data and OAuth
 
 <br/>
 
+## Preview
+![Screenshots](https://i.imgur.com/3ZhewHo.png) <sup>Note: The account # and the balances in the screenshots above are simulated and not real.<sup>
+  
+<br/>  
+
 ## Requirements
 * A Questrade account with API access enabled
 * Android 6.0+
@@ -15,14 +20,7 @@ Questrade uses a REST API, for access to read and write Questrade data and OAuth
 <br/>
 
 ## Setup
-
 *Insert setup here (allowing API access for Questrade, getting auth token, etc)*
-
-<br/>
-
-## Preview
-
-![Screenshots](https://i.imgur.com/3ZhewHo.png) <sup>Note: The account # and the balances in the screenshots above are simulated and not real.<sup>
 
 <br/>
 
