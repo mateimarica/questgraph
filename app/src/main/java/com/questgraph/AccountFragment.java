@@ -45,7 +45,9 @@ public class AccountFragment extends Fragment {
     private int accountNum;
     private String accountType;
     private final int green = Color.rgb(0, 175, 51);
+    private final int underneathLineGreen = Color.argb(35, 0, 175, 51);
     private final int red = Color.rgb(172, 41, 10);
+    private final int underneathLineRed = Color.argb(35, 150, 0, 0);
 
     Spinner dropdown;
     GraphView graph = null;
@@ -129,20 +131,24 @@ public class AccountFragment extends Fragment {
 
             //Gets the CURRENT account balance
             try {
-                //
+                //records balances... if unsuccessfull, cancel this task
                 Tools.recordBalances();
+
+                    //return false; //doesn't really return false anywhere, but it cancels the method
+
+
 
                 //For rounding CAD and USD to 2 decimal places (cents)
                 DecimalFormat df = new DecimalFormat("#.##");
 
                 String CAD = Tools.getValueFromJSON(
                             Tools.getBalanceJSON(accountNum + ""),"//0//perCurrencyBalances/totalEquity");
-                CAD = df.format(Double.parseDouble(CAD)/2);
+                CAD = df.format(Double.parseDouble(CAD));
 
 
                 String USD = Tools.getValueFromJSON(
                         Tools.getBalanceJSON(accountNum + ""),"//1//perCurrencyBalances/totalEquity");
-                USD = df.format(Double.parseDouble(USD)/2);
+                USD = df.format(Double.parseDouble(USD));
 
 
                 String balanceHist = Tools.getBalanceHistory(accountNum + "");
@@ -159,7 +165,7 @@ public class AccountFragment extends Fragment {
                     dates.add(date);
 
                     String JSONContents = sectionScan.next();
-                    totalCAD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//0//perCurrencyBalances/totalEquity"))/2);
+                    totalCAD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//0//perCurrencyBalances/totalEquity")));
                     totalUSD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//1//perCurrencyBalances/totalEquity")));
                     combinedCAD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//0//combinedBalances/totalEquity")));
                     combinedUSD.add(Double.parseDouble(Tools.getValueFromJSON(JSONContents, "//1//combinedBalances/totalEquity")));
@@ -228,6 +234,12 @@ public class AccountFragment extends Fragment {
         graph.addSeries(series);*/
 
         GraphView graph = (GraphView) this.graph;
+
+
+       //graph.getViewport().setScalable(true);  // activate horizontal zooming and scrolling
+        //graph.getViewport().setScrollable(true);  // activate horizontal scrolling
+        //graph.getViewport().setScalableY(true);  // activate horizontal and vertical zooming and scrolling
+        //graph.getViewport().setScrollableY(true);  // activate vertical scrolling
         /*LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
                 new DataPoint(0, 1),
                 new DataPoint(1, 5),
@@ -237,6 +249,7 @@ public class AccountFragment extends Fragment {
         });*/
 
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>();
+
 
         double firstValue = totalCAD.get(0);
         double lastValue = totalCAD.get(totalCAD.size() - 1);
@@ -257,7 +270,9 @@ public class AccountFragment extends Fragment {
                     // show normal x values
                     //super.formatLabel(value, isValueX) = milliseconds with commas
                     String removeCommas = super.formatLabel(value, isValueX).replaceAll("," , "");
-                    long milliAsInt = Long.parseLong((removeCommas));
+
+
+                    long milliAsInt = (long) Double.parseDouble(removeCommas);
                     Date dateOfXValue = new Date(milliAsInt);
                     SimpleDateFormat onlyHoursandMinsFormat = new SimpleDateFormat("h:mm");
                     nextOneInvisible = true;
@@ -269,13 +284,18 @@ public class AccountFragment extends Fragment {
             }
         });
 
-        series.setThickness(10);
-
         if(lastValue - firstValue > 0) {
             series.setColor(green);
+            series.setBackgroundColor(underneathLineGreen);
         } else {
             series.setColor(red);
+            series.setBackgroundColor(underneathLineRed);
         }
+
+        series.setDrawBackground(true);
+        series.setThickness(10);
+
+
         //series.setAnimated(true);
 
         graph.addSeries(series);

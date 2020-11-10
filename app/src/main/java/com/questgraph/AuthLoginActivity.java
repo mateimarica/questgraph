@@ -24,7 +24,7 @@ public class AuthLoginActivity extends AppCompatActivity  {
     /**
      * Reference to the context
      */
-    private static Context context;
+    static Context context;
 
     /**
      * The login button.
@@ -125,14 +125,6 @@ public class AuthLoginActivity extends AppCompatActivity  {
         }
     }
 
-    /**
-     * Used by other classes to retrieve a reference to the UI.
-     * @return The context;
-     */
-    public static Context getContext() {
-
-        return context;
-    }
 
     @Override
     public void onStart() {

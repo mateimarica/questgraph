@@ -50,6 +50,20 @@ class Tools {
 
     final static SimpleDateFormat compressedTime = new SimpleDateFormat("d-M-yyyy/H:m");
 
+    private static File getBalancesFile(String accountNum) {
+        return new File(balancesPath + accountNum);
+    }
+
+    //checks if the balances file exists for the first account, which means they all exist
+    private static boolean balanceFilesExist() {
+        try {
+            return (new File(balancesPath + getAccounts().get(0))).exists();
+        } catch (InvalidAccessTokenException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     static void settingsFileExists() {
         if(!settingsFile.exists()) {
             writeToFile("{\"darkThemeEnabled\":false}", settingsFile);
@@ -68,7 +82,7 @@ class Tools {
     private static File getFileDirectory() {
         //If there's an error here, then only the background service is active
         try{
-            return AuthLoginActivity.getContext().getFilesDir();
+            return AuthLoginActivity.context.getFilesDir();
         } catch(Exception e) {
             return BalanceRecordingService.getContext().getFilesDir();
         }
@@ -180,10 +194,13 @@ class Tools {
                 //each account's number is at the
                 accountNums.add(accountsArray.getJSONObject(i).getString("number"));
                 accountNums.add(accountsArray.getJSONObject(i).getString("type"));
+
+                DataManager.getDataManagerInstance().insertAccount(accounts.toString());
             }
 
         } catch (ArrayIndexOutOfBoundsException | JSONException | FileNotFoundException e) {
             //TODO Should probably put something here, but under proper conditions the program shouldn't reach this
+            //Actually, who knows
         }
 
         return accountNums;
@@ -321,7 +338,7 @@ class Tools {
      * @param key The key whose value is to be returned.
      * @return The value associated with the given key.
      */
-    static String getValueFromJSON (String JSONContents, String key) {
+    static String getValueFromJSON(String JSONContents, String key) {
         String value = "error";
 
         try {
@@ -441,7 +458,9 @@ class Tools {
     }
 
     //Records current real-time balances and saves them to a file
-    static void recordBalances() throws InvalidAccessTokenException {
+    //returns true if balances successfully recorded
+    //false is not recorded
+    static boolean recordBalances() throws InvalidAccessTokenException {
 
         Calendar cal = Calendar.getInstance();
 
@@ -449,14 +468,24 @@ class Tools {
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int min = cal.get(Calendar.MINUTE);
 
-        if(!((day != 1 && day != 7) && ((hour >= 10 && hour < 17) || (hour == 17 && min <= 20)))) {
+        boolean balanceFileBeingMadeNow = !balanceFilesExist();
+
+        if(balanceFileBeingMadeNow) {
+            System.out.println("Balance file does not exist... Creating balance file(s) for first time");
+        }
+
+        //If after hours, don't record balances. But if no account file exists, proceed anyway
+        if(!((day != 1 && day != 7) && ((hour >= 10 && hour < 17) || (hour == 17 && min <= 20)))
+            && !balanceFileBeingMadeNow) {
             System.out.println("Balance was not recorded after-hours");
-            return;
+            return false;
         }
 
         System.out.println("Recording balances...");
 
-        ArrayList<String> accountNums = accountNums = getAccounts();
+        //old line
+        //ArrayList<String> accountNums = accountNums = getAccounts();
+        ArrayList<String> accountNums = getAccounts();
 
         //EXPERIMENT FOR FUTURE RETROACTIVE GRAPHING
         /*try {
@@ -497,9 +526,15 @@ class Tools {
                 e.printStackTrace();
             }
 
+            //if the balance file doesn't exist now, let program know that this is first time being made
+            //name is verbose and sucks, fix later
+
+
+
+            //if balance file doesn't exist, proceed anyway
             if (newTime.getTime() - oldTime.getTime() < (1000 * 60 * 5)) {
                 System.out.println("Didn't successfully record because less than 5 minutes had passed since last recording");
-                return;
+                return false;
             }
         }
 
@@ -512,7 +547,7 @@ class Tools {
             if(isInternetConnection == false) {
                 isInternetConnection = true;
                 System.out.println("No internet... Didn't record new balances.");
-                return;
+                return false;
             }
 
             String dateAndBalance = timeStr + " " + balanceInfo;
@@ -525,6 +560,9 @@ class Tools {
         }
 
         System.out.println("Successfully recorded balances.");
+
+        //successfully returned balances
+        return true;
     }
 
     //Gets the total history of the balances from the /balanceHist[accountNum] directory
