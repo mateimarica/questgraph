@@ -1,9 +1,9 @@
-package com.questgraph;
+package com.questgraph.exception;
 
 /**
 Thrown when the access token is not valid.
 */
-class InvalidAccessTokenException extends java.lang.Exception {
+public class InvalidAccessTokenException extends java.lang.Exception {
 	public InvalidAccessTokenException() {}
 	
 	public InvalidAccessTokenException(String reason) {

@@ -17,11 +17,11 @@
         android:roundIcon="@drawable/round_icon"
         android:testOnly="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name="com.questgraph.AccountActivity"
+        <activity android:name="com.questgraph.ui.AccountActivity"
                   android:label="MainActivity"
                     android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
-        <activity android:name="com.questgraph.AuthLoginActivity"
+        <activity android:name="com.questgraph.ui.AuthLoginActivity"
                   android:label="@string/app_name"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" >
@@ -32,22 +32,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".BalanceRecordingService"
-            android:process=":BALANCERECORDINGSERVICE"
-            android:exported="true"
-            android:enabled="true"
-            android:isolatedProcess="true"
-            android:stopWithTask="false"
-            android:externalService="@bool/enable_system_alarm_service_default"
-            android:foregroundServiceType="mediaPlayback">
-
-
-            <intent-filter>
-                <action android:name="com.questgraph.BalanceRecordingService" />
-            </intent-filter>
-
-
-        </service>
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

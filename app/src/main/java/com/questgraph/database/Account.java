@@ -1,4 +1,4 @@
-package com.questgraph;
+package com.questgraph.database;
 
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -6,18 +6,18 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "Accounts")
 public class Account {
-    final String type; //TFSA, RRSP, etc
+    public final String type; //TFSA, RRSP, etc
 
     @PrimaryKey
-    final int number;
+    public final int number;
 
-    final String status; //Active, Suspended (Closed), Suspended (View Only), Liquidate Only, Closed
+    public final String status; //Active, Suspended (Closed), Suspended (View Only), Liquidate Only, Closed
 
-    final boolean isPrimary; //is this the primary account for the user
+    public final boolean isPrimary; //is this the primary account for the user
 
-    final boolean isBilling; //Whether this account gets billed for various expenses such as fees, market data, etc.
+    public final boolean isBilling; //Whether this account gets billed for various expenses such as fees, market data, etc.
 
-    final String clientAccountType; //Individual, Joint, Family, etc
+    public final String clientAccountType; //Individual, Joint, Family, etc
 
     public Account(String type, int number, String status, boolean isPrimary, boolean isBilling, String clientAccountType) {
         this.type = type;

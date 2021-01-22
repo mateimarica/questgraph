@@ -1,4 +1,11 @@
-package com.questgraph;
+package com.questgraph.control;
+
+import com.questgraph.database.Account;
+import com.questgraph.database.DataManager;
+import com.questgraph.exception.BadResponseCodeException;
+import com.questgraph.exception.InvalidAccessTokenException;
+import com.questgraph.exception.InvalidManualAuthTokenException;
+import com.questgraph.ui.AuthLoginActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.TimeZone;
 
@@ -21,7 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class Tools {
+public class Tools {
 
     /**
      * The root file directory for this app.
@@ -64,19 +72,26 @@ class Tools {
         }
     }
 
-    static void settingsFileExists() {
+    public static void settingsFileExists() {
         if(!settingsFile.exists()) {
             writeToFile("{\"darkThemeEnabled\":false}", settingsFile);
             System.out.println("Settings file created.");
         }
     }
 
-    static void updateDarkTheme(boolean enabled) {
+    public static void updateDarkTheme(boolean enabled) {
         writeToFile("{\"darkThemeEnabled\":" + enabled + "}",  settingsFile);
     }
 
-    static boolean darkThemeEnabled() {
-        return Boolean.parseBoolean(getValueFromJSON(settingsFile, "darkThemeEnabled"));
+    public static boolean darkThemeEnabled() {
+        try {
+            return Boolean.parseBoolean(getValueFromJSON(settingsFile, "darkThemeEnabled"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            System.out.println("No settings file found");
+        }
+        return false;
     }
 
     private static File getFileDirectory() {
@@ -84,30 +99,32 @@ class Tools {
         try{
             return AuthLoginActivity.context.getFilesDir();
         } catch(Exception e) {
-            return BalanceRecordingService.getContext().getFilesDir();
+            return null;
         }
     }
-
+    public static boolean authorizationExists() {
+        return DataManager.getDataManager().authorizationExists();
+    }
     /**
      * Checks if init.json exists (means that access token already exists)
      * @return True or false depending on if init.json exists
      */
-    static boolean initFileExists() {
+    /*public static boolean initFileExists() {
         return initFile.exists();
-    }
+    }*/
 
     /**
      * Returns the refresh token from init.json
      * @return The refresh token.
      */
-    static String getRefreshToken(){
-        return getValueFromJSON(initFile, "refresh_token");
+    public static String getRefreshToken(){
+        return DataManager.getDataManager().getRefreshToken();
     }
 
     /**
      * Resets the general files, but not the account balance history files
      */
-    static void resetFiles() {
+    /*public static void resetFiles() {
         if(initFile.exists()) {
             initFile.delete();
             System.out.println("init.json deleted.");
@@ -119,18 +136,10 @@ class Tools {
         /*if(balancesFile.exists()) {
             balancesFile.delete();
             System.out.println("balances.json deleted.");
-        }*/
+        }
 
-    }
-
-    /**
-     * Gets access token using auth token and creates init.json
-     * @param authToken The manual authorization token (or the refresh token)
-     * @return The access token
-     * @throws InvalidManualAuthTokenException If authorization token doesn't work.
-     */
-    static String getAccessToken(String authToken) throws InvalidManualAuthTokenException {
-
+    }*/
+    public static void retrieveAuthorization(String authToken) throws InvalidManualAuthTokenException {
         BufferedReader in;
 
         try {
@@ -139,52 +148,56 @@ class Tools {
             throw new InvalidManualAuthTokenException(e.getMessage() + "\nAuth token is invalid.");
         }
 
-        //saves to json
+        //saves to database
         try {
-            writeToFile(in.readLine(), initFile);
-            System.out.println("init.json created");
+            DataManager.getDataManager().updateAuthorization(in.readLine());
+            System.out.println("Saved authorization in database");
             in.close();
         }catch (IOException e) {
             System.err.println(e.getMessage());
         }
-
-        return getValueFromJSON(initFile, "access_token");
+    }
+    /**
+     * Gets access token using auth token and creates init.json
+     * @return The access token
+     * @throws InvalidManualAuthTokenException If authorization token doesn't work.
+     */
+    public static String getAccessToken() {
+        return DataManager.getDataManager().getAccessToken();
     }
 
-    /**
-     * Tries the access token or refresh token from the file. Always gets new account file.
-     * @return ArrayList containing account nums and types. Eg: ArrayList = {account1Num, account1Type, account2Num, account2Type}
-     * @throws InvalidAccessTokenException If the access token is invalid
-     */
-    static ArrayList<String> getAccounts() throws InvalidAccessTokenException {
 
-        BufferedReader in;
-        ArrayList<String> accountNums = new ArrayList<>();
 
+    public static String getApiServer() {
+        return DataManager.getDataManager().getApiServer();
+    }
+
+    public static void retrieveAccounts() throws InvalidAccessTokenException {
+        BufferedReader in = null;
         try {
-            in = connectToURL(getValueFromJSON(initFile, "api_server")
+            in = connectToURL(getApiServer()
                             + "v1/accounts/",
-                    getValueFromJSON(initFile, "access_token"));
+                    getAccessToken());
 
         } catch (BadResponseCodeException e) {
             throw new InvalidAccessTokenException(e.getMessage() + "\nAccess token is invalid or has expired.");
         }
 
         try {
-            //saves to json
-            try {
-                writeToFile(in.readLine(), accFile);
-                System.out.println("accounts.json created");
-                in.close();
-            } catch (NullPointerException e) {
-                System.out.println("NullPointerException when reading accounts file... No internet? Using file that already exists.");
-            }
-
+            DataManager.getDataManager().insertAccounts(in.readLine());
         } catch (IOException e) {
-            System.err.println("IOException occured in getAccInfo(): " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+    /**
+     * Tries the access token or refresh token from the file. Always gets new account file.
+     * @return ArrayList containing account nums and types. Eg: ArrayList = {account1Num, account1Type, account2Num, account2Type}
+     * @throws InvalidAccessTokenException If the access token is invalid
+     */
+    public static List<Account> getAccounts() throws InvalidAccessTokenException {
 
-        try {
+
+        /*try {
             Scanner scan = new Scanner(accFile);
             JSONObject accounts = new JSONObject(scan.next());
             scan.close();
@@ -195,15 +208,21 @@ class Tools {
                 accountNums.add(accountsArray.getJSONObject(i).getString("number"));
                 accountNums.add(accountsArray.getJSONObject(i).getString("type"));
 
-                DataManager.getDataManagerInstance().insertAccount(accounts.toString());
+                DataManager.getDataManager().insertAccount(accounts.toString());
             }
 
         } catch (ArrayIndexOutOfBoundsException | JSONException | FileNotFoundException e) {
             //TODO Should probably put something here, but under proper conditions the program shouldn't reach this
             //Actually, who knows
-        }
+        }*/
 
-        return accountNums;
+        List<Account> accounts = DataManager.getDataManager().getAccounts();
+        return accounts;
+    }
+
+    //delete old authorization if refresh token fails
+    public static void deleteAuthorization() {
+        DataManager.getDataManager().deleteAuthorization();
     }
 
     /**
@@ -254,6 +273,7 @@ class Tools {
 
             if (accessToken != null) {
                 connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+
                 //connection.setDoOutput(true);
                 connection.setRequestMethod("GET");
             }
@@ -318,7 +338,7 @@ class Tools {
      * @param key The key whose value is to be returned.
      * @return The value associated with the given key.
      */
-    static String getValueFromJSON (File JSONIn, String key) {
+    static String getValueFromJSON (File JSONIn, String key) throws JSONException {
 
         Scanner scan = null;
         try {
@@ -338,60 +358,60 @@ class Tools {
      * @param key The key whose value is to be returned.
      * @return The value associated with the given key.
      */
-    static String getValueFromJSON(String JSONContents, String key) {
+    public static String getValueFromJSON(String JSONContents, String key) throws JSONException {
         String value = "error";
 
-        try {
-            Scanner scan;
-            String currentKey;
 
-            if(JSONContents.equals("")) {
-                return null;
-            }
+        Scanner scan;
+        String currentKey;
 
-            //commented-out code is for checking what happens when both access and refresh token don't work.
-            //String a = "{\"access_token\":\"6pI2KSiGztS-kGd-86-zmlfA18Bk-el0\",\"refresh_token\":\"CfzndDcYyw86AEse0i1YJQHq4CdPR-70\",\"api_server\":\"https://api03.iq.questrade.com/\",\"token_type\":\"Bearer\",\"expires_in\":1800}";
-            //JSONObject JSONFile = new JSONObject(a);
-
-            JSONObject JSONFile = new JSONObject(JSONContents);
-            scan = new Scanner(key).useDelimiter("/");
-
-            while (true) {
-
-                currentKey = scan.next();
-                key = key.substring(currentKey.length());
-
-                //if finish parsing JSON
-                if (key.length() == 0) {
-                    value = JSONFile.getString(currentKey);
-                    break;
-
-                    //if next part of JSON is array
-                } else if (currentKey.equals("")) {
-                    int arrayIndex = scan.nextInt();
-                    scan.next();
-                    currentKey = scan.next();
-
-                    JSONFile = JSONFile.getJSONArray(currentKey).getJSONObject(arrayIndex);
-
-                } else {
-                    if (scan.hasNext()) {
-                        JSONFile = JSONFile.getJSONObject(currentKey);
-                    } else {
-
-                        value = JSONFile.get(currentKey) + "";
-                        break;
-                    }
-                }
-
-            }
-
-            scan.close();
-
-        } catch (JSONException e) {
-            //System.err.println("JSONException occurred in getValueFromJSON() " + e.getMessage());
+        if(JSONContents.equals("")) {
             return null;
         }
+
+        //commented-out code is for checking what happens when both access and refresh token don't work.
+        //String a = "{\"access_token\":\"6pI2KSiGztS-kGd-86-zmlfA18Bk-el0\",\"refresh_token\":\"CfzndDcYyw86AEse0i1YJQHq4CdPR-70\",\"api_server\":\"https://api03.iq.questrade.com/\",\"token_type\":\"Bearer\",\"expires_in\":1800}";
+        //JSONObject JSONFile = new JSONObject(a);
+
+        JSONObject JSONFile = new JSONObject(JSONContents);
+        scan = new Scanner(key).useDelimiter("/");
+
+        while (true) {
+
+            currentKey = scan.next();
+            key = key.substring(currentKey.length());
+
+            //if finish parsing JSON
+            if (key.length() == 0) {
+                value = JSONFile.getString(currentKey);
+                break;
+
+                //if next part of JSON is array
+            } else if (currentKey.equals("")) {
+                int arrayIndex = scan.nextInt();
+                scan.next();
+                currentKey = scan.next();
+
+                JSONFile = JSONFile.getJSONArray(currentKey).getJSONObject(arrayIndex);
+
+            } else {
+                if (scan.hasNext()) {
+                    JSONFile = JSONFile.getJSONObject(currentKey);
+                } else {
+
+                    value = JSONFile.get(currentKey) + "";
+                    break;
+                }
+            }
+
+        }
+
+        scan.close();
+
+         /*catch (JSONException e) {
+            //System.err.println("JSONException occurred in getValueFromJSON() " + e.getMessage());
+            return null;
+        }*/
         return value;
     }
 
@@ -402,7 +422,7 @@ class Tools {
      * @return The balance info for the specific account
      * @throws IOException Never
      */
-    static String getBalanceJSON(String accNum) throws InvalidAccessTokenException {
+    public static String getBalanceJSON(String accNum) throws InvalidAccessTokenException {
         BufferedReader in = null;
 
         try {
@@ -415,6 +435,8 @@ class Tools {
         } catch (BadResponseCodeException e) {
             System.out.println("BadResponseCodeException" +e.getMessage());
             throw new InvalidAccessTokenException();
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
         String JSONContents = null;
 
@@ -429,7 +451,7 @@ class Tools {
         } catch (NullPointerException e) {
             //No internet, so return last record in balance history.
 
-            String balanceHistory = getBalanceHistory(accNum);
+            String balanceHistory = null; //getBalanceHistory(accNum);
             if(balanceHistory == null) {
                 return null;
             }
@@ -460,7 +482,7 @@ class Tools {
     //Records current real-time balances and saves them to a file
     //returns true if balances successfully recorded
     //false is not recorded
-    static boolean recordBalances() throws InvalidAccessTokenException {
+    /*public static boolean recordBalances() throws InvalidAccessTokenException {
 
         Calendar cal = Calendar.getInstance();
 
@@ -485,7 +507,7 @@ class Tools {
 
         //old line
         //ArrayList<String> accountNums = accountNums = getAccounts();
-        ArrayList<String> accountNums = getAccounts();
+        ArrayList<Account> accountNums = new ArrayList<>(getAccounts());
 
         //EXPERIMENT FOR FUTURE RETROACTIVE GRAPHING
         /*try {
@@ -501,8 +523,8 @@ class Tools {
             System.out.println("Execution success");
         } catch (BadResponseCodeException | IOException e) {
             e.printStackTrace();
-        }*/
-
+        }
+        // put * / here
         //Uses Atlantic time as standardized timezone
         TimeZone.setDefault(TimeZone.getTimeZone("Canada/Atlantic"));
 
@@ -563,10 +585,10 @@ class Tools {
 
         //successfully returned balances
         return true;
-    }
+    }*/
 
     //Gets the total history of the balances from the /balanceHist[accountNum] directory
-    static String getBalanceHistory(String accNum) {
+    /*public static String getBalanceHistory(String accNum) {
         Scanner scan = null;
 
         try {
@@ -586,5 +608,5 @@ class Tools {
         }
 
         return totalHistoryStr;
-    }
+    }*/
 }

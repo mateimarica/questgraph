@@ -1,4 +1,4 @@
-package com.questgraph;
+package com.questgraph.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,14 +17,17 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.questgraph.R;
+import com.questgraph.control.Tools;
+import com.questgraph.exception.InvalidManualAuthTokenException;
 
 
 public class AuthLoginActivity extends AppCompatActivity  {
 
     /**
-     * Reference to the context
+     * Reference to the context.
      */
-    static Context context;
+    public static Context context;
 
     /**
      * The login button.
@@ -84,7 +87,6 @@ public class AuthLoginActivity extends AppCompatActivity  {
                 if(authTokenField.length() > 0) {
                     authLoginBtn.setEnabled(true);
                 } else {
-
                     authLoginBtn.setEnabled(false);
                 }
             }
@@ -120,6 +122,7 @@ public class AuthLoginActivity extends AppCompatActivity  {
         //If this activity is recreated with a "refresh_token" intent, that means the refresh token was invalid,
         //and the appropriate message appears.
         if (getIntent().getStringExtra("refresh_token") != null) {
+            System.out.println("Refresh token failed");
             popup.setText("Refresh token failed, please try again.");
             popup.show();
         }
@@ -129,13 +132,26 @@ public class AuthLoginActivity extends AppCompatActivity  {
     @Override
     public void onStart() {
         super.onStart();
-
+        new CheckAuthorizationExistsTask().execute();
         //Checks if init.json already exists. It contains the access and refresh tokens, so it will automatically login if found.
-        if(Tools.initFileExists()) {
-            startActivity(new Intent(this, AccountActivity.class));
-            finish();
-        }
 
+    }
+
+    //Authorization already exists
+    private void skipLogin() {
+        startActivity(new Intent(this, AccountActivity.class));
+        finish();
+    }
+
+    class CheckAuthorizationExistsTask extends AsyncTask<String, CurrentState, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            if(Tools.authorizationExists()) {
+                skipLogin();
+            }
+            return null;
+        }
     }
 
     //enum used to represent the current state of the login process.
@@ -157,7 +173,7 @@ public class AuthLoginActivity extends AppCompatActivity  {
         protected Boolean doInBackground(String... authToken) {
 
             try {
-                Tools.getAccessToken(authToken[0]);
+                Tools.retrieveAuthorization(authToken[0]);
             } catch (InvalidManualAuthTokenException e) {
                 publishProgress(CurrentState.FAIL);
                 return false;

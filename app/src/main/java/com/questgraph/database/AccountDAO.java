@@ -1,10 +1,9 @@
-package com.questgraph;
+package com.questgraph.database;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
-import androidx.room.RawQuery;
 import androidx.room.Update;
 
 import java.util.List;
@@ -15,7 +14,7 @@ public interface AccountDAO {
     List<Account> getAccountList();
 
     @Insert
-    void addAccount(Account account);
+    void addAccount(Account ... account);
 
     @Query("SELECT COUNT(1) FROM Accounts WHERE number = :number")
     boolean accountExists(int number);
@@ -25,5 +24,4 @@ public interface AccountDAO {
 
     @Delete
     void removeAccount(Account account);
-
 }

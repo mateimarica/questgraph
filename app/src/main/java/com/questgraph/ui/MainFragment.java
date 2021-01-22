@@ -1,7 +1,6 @@
-package com.questgraph;
+package com.questgraph.ui;
 
 import android.app.ProgressDialog;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,6 +11,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.questgraph.R;
+import com.questgraph.control.Tools;
 
 import java.util.Calendar;
 import java.util.Date;

@@ -1,6 +1,5 @@
-package com.questgraph;
+package com.questgraph.ui;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -8,17 +7,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -26,10 +20,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.widget.TextView;
+
 import com.google.android.material.navigation.NavigationView;
+import com.questgraph.R;
+import com.questgraph.control.Tools;
+import com.questgraph.database.Account;
+import com.questgraph.exception.InvalidAccessTokenException;
+import com.questgraph.exception.InvalidManualAuthTokenException;
+
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 
 public class AccountActivity extends AppCompatActivity {
@@ -44,7 +43,7 @@ public class AccountActivity extends AppCompatActivity {
     /**
      * Reference to the UI.
      */
-    static Context context;
+    public static Context context;
 
     /**
      * Loading dialog.
@@ -191,10 +190,10 @@ public class AccountActivity extends AppCompatActivity {
         context = this;
 
         //Creates a unique periodic work request that will run every 30 minutes and get balance info on all the accounts to create visuals.
-        PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(
+        /*PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(
                 BalanceRecordingService.class, 20, TimeUnit.MINUTES
         ).build();
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork("BalanceGetter", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest);
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork("BalanceGetter", ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest);*/
     }
 
     @Override
@@ -251,7 +250,10 @@ public class AccountActivity extends AppCompatActivity {
             if(section[0].equals(Section.ACCOUNTS)) {
 
                 try {
+                    Tools.retrieveAccounts();
+                    System.out.println("Getting accounts..");
                     publishProgress(new Object[]{Tools.getAccounts(), Section.ACCOUNTS});
+                    System.out.println("Got accounts.");
                 } catch (InvalidAccessTokenException e) {
                     //null is given when access token doesn't work, assumedly expired
                     publishProgress(new Object[]{Tools.getRefreshToken(), Section.ACCESS_TOKEN_EXPIRED});
@@ -270,11 +272,12 @@ public class AccountActivity extends AppCompatActivity {
 
             switch (currentSection) {
                 case ACCOUNTS:
-                    ArrayList<String> accounts =  (ArrayList<String>) obj[0];
-                    for(int i = 0; i < accounts.size(); i = i + 2) {
+                    ArrayList<Account> accounts =  (ArrayList<Account>) obj[0];
+                    System.out.println(accounts.get(0).number);
+                    for(int i = 0; i < accounts.size(); i++) {
 
-                        final String accountNum = accounts.get(i);
-                        final String accountType = accounts.get(i + 1);
+                        final int accountNum = accounts.get(i).number;
+                        final String accountType = accounts.get(i).type;
 
                         MenuItem newAccountItem = accountGroup.add(accountNum + "  —  " + accountType).setIcon(R.drawable.ic_account).setCheckable(true);
 
@@ -294,13 +297,13 @@ public class AccountActivity extends AppCompatActivity {
                                 toolbar.setTitle(accountNum + "  –  " + accountType);
 
                                 Bundle infoBundle = new Bundle();
-                                infoBundle.putString("accountNum", accountNum);
+                                infoBundle.putString("accountNum", accountNum + "");
                                 infoBundle.putString("accountType", accountType);
 
                                 AccountFragment newFragment = new AccountFragment();
                                 newFragment.setArguments(infoBundle);
                                 currentFragment = newFragment;
-                                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, newFragment, accountNum).addToBackStack("").commit();
+                                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, newFragment, accountNum + "").addToBackStack("").commit();
 
                                 drawer.closeDrawers();
                                 return true;
@@ -342,15 +345,16 @@ public class AccountActivity extends AppCompatActivity {
 
             try {
                 //Tries to get a new access token using the refresh token
-                Tools.getAccessToken(refreshToken[0]);
+                Tools.retrieveAuthorization(refreshToken[0]);
 
             } catch (InvalidManualAuthTokenException e) {
 
                 //TODO Make sure not to remove balance history files, only init.json, accounts.json, and balances.json
                 //TODO Perhaps encrypt account numbers file names
-                Tools.resetFiles();
+                Tools.deleteAuthorization();
                 publishProgress(RefreshCurrentState.FAIL);
                 return false;
+
             }
 
             publishProgress (RefreshCurrentState.SUCCESSFUL);
@@ -366,8 +370,10 @@ public class AccountActivity extends AppCompatActivity {
                     break;
 
                 case FAIL:
-                    loadingDialog.dismiss();
+
+
                     //If the refresh token fails, nothing more can be done. Sends the user back to the home screen
+                    loadingDialog.dismiss();
                     startActivity(new Intent(context, AuthLoginActivity.class).putExtra("refresh_token","invalid"));
                     finish();
                     break;

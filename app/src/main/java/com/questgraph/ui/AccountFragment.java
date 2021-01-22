@@ -1,17 +1,12 @@
-package com.questgraph;
+package com.questgraph.ui;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -20,22 +15,14 @@ import androidx.fragment.app.Fragment;
 
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
-import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.questgraph.R;
 
-import java.io.File;
-import java.lang.reflect.Array;
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Scanner;
 import java.util.TimeZone;
 
 public class AccountFragment extends Fragment {
@@ -130,7 +117,7 @@ public class AccountFragment extends Fragment {
             System.out.println("Account Fragment opened");
 
             //Gets the CURRENT account balance
-            try {
+            /*try {
                 //records balances... if unsuccessfull, cancel this task
                 Tools.recordBalances();
 
@@ -179,7 +166,7 @@ public class AccountFragment extends Fragment {
             } catch (ParseException e) {
                 System.out.println("ParseException thrown when getting account " +
                         "balances in AccountFragment.java: " + e.getMessage());
-            }
+            }*/
 
             return true;
         }
