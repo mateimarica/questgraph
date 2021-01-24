@@ -1,5 +1,6 @@
 package com.questgraph.database;
 
+import com.questgraph.control.JSONManager;
 import com.questgraph.ui.AccountActivity;
 import com.questgraph.control.Tools;
 import com.questgraph.ui.AuthLoginActivity;
@@ -11,19 +12,21 @@ import java.util.List;
 
 public class DataManager {
 
-    AppDatabase appDb;
+    private DataManager() {}
 
-    public void insertAccounts(String JSON) {
+    private static AppDatabase appDb;
+
+    public static void insertAccounts(String JSON) {
         ArrayList<Account> accounts = new ArrayList<>();
         try {
             for (int i = 0; true; i++) {
                 accounts.add(new Account(
-                        Tools.getValueFromJSON(JSON, "//" + i + "//accounts/type"),
-                        Tools.getValueFromJSON(JSON, "//" + i + "//accounts/number"),
-                        Tools.getValueFromJSON(JSON, "//" + i + "//accounts/status"),
-                        Tools.getValueFromJSON(JSON, "//" + i + "//accounts/isPrimary"),
-                        Tools.getValueFromJSON(JSON, "//" + i + "//accounts/isBilling"),
-                        Tools.getValueFromJSON(JSON, "//" + i + "//accounts/clientAccountType")));
+                        JSONManager.getValueFromJSON(JSON, "//" + i + "//accounts/type"),
+                        JSONManager.getValueFromJSON(JSON, "//" + i + "//accounts/number"),
+                        JSONManager.getValueFromJSON(JSON, "//" + i + "//accounts/status"),
+                        JSONManager.getValueFromJSON(JSON, "//" + i + "//accounts/isPrimary"),
+                        JSONManager.getValueFromJSON(JSON, "//" + i + "//accounts/isBilling"),
+                        JSONManager.getValueFromJSON(JSON, "//" + i + "//accounts/clientAccountType")));
             }
 
         } catch (JSONException e) {
@@ -44,18 +47,18 @@ public class DataManager {
 
     }
 
-    public List<Account> getAccounts() {
+    public static List<Account> getAccounts() {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         return appDb.accountDAO().getAccountList();
     }
 
-    public void updateAuthorization(String JSON) {
+    public static void updateAuthorization(String JSON) {
         Authorization authorization = null;
         try {
             authorization = new Authorization(
-                    Tools.getValueFromJSON(JSON, "access_token"),
-                    Tools.getValueFromJSON(JSON, "refresh_token"),
-                    Tools.getValueFromJSON(JSON, "api_server")
+                    JSONManager.getValueFromJSON(JSON, "access_token"),
+                    JSONManager.getValueFromJSON(JSON, "refresh_token"),
+                    JSONManager.getValueFromJSON(JSON, "api_server")
             );
         } catch (JSONException e) {
             e.printStackTrace();
@@ -64,33 +67,33 @@ public class DataManager {
         updateAuthorization(authorization);
     }
 
-    void updateAuthorization(Authorization authorization) {
+    public static void updateAuthorization(Authorization authorization) {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         appDb.authorizationDAO().resetAuthorization();
         appDb.authorizationDAO().insertAuthorization(authorization);
     }
 
-    public void deleteAuthorization() {
+    public static void deleteAuthorization() {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         appDb.authorizationDAO().resetAuthorization();
     }
 
-    public String getAccessToken() {
+    public static String getAccessToken() {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         return appDb.authorizationDAO().getAccessToken();
     }
 
-    public String getRefreshToken() {
+    public static String getRefreshToken() {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         return appDb.authorizationDAO().getRefreshToken();
     }
 
-    public String getApiServer() {
+    public static String getApiServer() {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         return appDb.authorizationDAO().getApiServer();
     }
 
-    public boolean authorizationExists() {
+    public static boolean authorizationExists() {
         appDb = AppDatabase.getInstance(AuthLoginActivity.context);
         if(appDb.authorizationDAO().getNumberOfRows() == 1) {
             return true;
@@ -99,12 +102,5 @@ public class DataManager {
         return false;
     }
 
-
-
-
-
-    public static DataManager getDataManager() {
-        return new DataManager();
-    }
 
 }

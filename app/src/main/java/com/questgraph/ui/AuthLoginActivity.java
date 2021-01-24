@@ -18,7 +18,8 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.questgraph.R;
-import com.questgraph.control.Tools;
+import com.questgraph.control.APIManager;
+import com.questgraph.database.DataManager;
 import com.questgraph.exception.InvalidManualAuthTokenException;
 
 
@@ -147,7 +148,7 @@ public class AuthLoginActivity extends AppCompatActivity  {
 
         @Override
         protected Boolean doInBackground(String... strings) {
-            if(Tools.authorizationExists()) {
+            if(DataManager.authorizationExists()) {
                 skipLogin();
             }
             return null;
@@ -173,7 +174,7 @@ public class AuthLoginActivity extends AppCompatActivity  {
         protected Boolean doInBackground(String... authToken) {
 
             try {
-                Tools.retrieveAuthorization(authToken[0]);
+                APIManager.retrieveAuthorization(authToken[0]);
             } catch (InvalidManualAuthTokenException e) {
                 publishProgress(CurrentState.FAIL);
                 return false;

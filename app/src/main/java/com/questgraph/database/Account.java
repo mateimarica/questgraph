@@ -37,4 +37,14 @@ public class Account {
         this.isBilling = Boolean.parseBoolean(isBilling);
         this.clientAccountType = clientAccountType;
     }
+
+    @Ignore
+    public Account(String type, int number) {
+        this.type = type;
+        this.number = number;
+        this.status = null;
+        this.isPrimary = false;
+        this.isBilling = false;
+        this.clientAccountType = null;
+    }
 }

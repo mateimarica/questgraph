@@ -1,12 +1,15 @@
 package com.questgraph.ui;
 
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
@@ -16,7 +19,9 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 import com.questgraph.R;
+import com.questgraph.control.FileManager;
 import com.questgraph.control.Tools;
+import com.questgraph.database.DataManager;
 
 public class SettingsFragment extends Fragment {
 
@@ -24,6 +29,8 @@ public class SettingsFragment extends Fragment {
     private View divider;
 
     private Switch darkThemeSwitch;
+
+    private Button signOutButton;
 
     @Nullable
     @Override
@@ -36,16 +43,19 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Tools.settingsFileExists();
+        FileManager.settingsFileExists();
     }
 
     @Override
     public void onStart() {
         super.onStart();
 
+
         darkThemeSwitch = view.findViewById(R.id.darkModeSwitch);
         divider = view.findViewById(R.id.divider);
-        if(Tools.darkThemeEnabled()) {
+        signOutButton = view.findViewById(R.id.signOutButton);
+
+        if(FileManager.darkThemeEnabled()) {
             turnOnDarkTheme();
         } else {
             turnOffDarkTheme();
@@ -56,16 +66,31 @@ public class SettingsFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 if(isChecked) {
-                    Tools.updateDarkTheme(true);
+                    FileManager.updateDarkTheme(true);
                     AccountActivity.restartSettings = true;
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
                 } else {
-                    Tools.updateDarkTheme(false);
+                    FileManager.updateDarkTheme(false);
+
                     AccountActivity.restartSettings = true;
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
                 }
+            }
+        });
+
+        signOutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        DataManager.deleteAuthorization();
+                    }
+                });
+                startActivity(new Intent(AccountActivity.context, AuthLoginActivity.class));
             }
         });
 

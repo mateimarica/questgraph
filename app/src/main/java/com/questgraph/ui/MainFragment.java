@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.questgraph.R;
+import com.questgraph.control.FileManager;
 import com.questgraph.control.Tools;
 
 import java.util.Calendar;
@@ -66,7 +67,7 @@ public class MainFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if(Tools.darkThemeEnabled()) {
+        if(FileManager.darkThemeEnabled()) {
             view.setBackgroundColor(AccountActivity.darkThemeBackground);
             welcomeText.setTextColor(AccountActivity.darkThemeText);
         }
